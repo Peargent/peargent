@@ -4,7 +4,7 @@
 
 # Peargent
 
-[![PyPI version](https://badge.fury.io/py/peargent.svg)](https://badge.fury.io/py/peargent)
+[![PyPI version](https://badge.fury.io/py/peargent.svg?bust=1)](https://badge.fury.io/py/peargent)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A modern Python framework for building intelligent AI agents with advanced tracing, history management, and seamless LLM integration.
