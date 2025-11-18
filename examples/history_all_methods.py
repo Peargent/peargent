@@ -9,8 +9,8 @@ Key Concept: Use HistoryConfig with the desired storage type
 
 import os
 from peargent import create_agent, create_pool
-from peargent.config.history import HistoryConfig
-from peargent.core.history.storage_types import (
+from peargent.history import (
+    HistoryConfig,
     SessionBuffer,
     File,
     Sqlite,
@@ -233,7 +233,7 @@ def example_agent_pools():
             auto_manage_context=True,
             max_context_messages=20,
             strategy="smart",
-            store=File(storage_dir="./pool_conversations")
+            store=Sqlite(database_path="./pool_conversations/")
         )
     )
 

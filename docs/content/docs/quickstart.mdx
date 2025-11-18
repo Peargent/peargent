@@ -1,0 +1,36 @@
+---
+title: Quick start
+description: Learn how to set up your first pear agent in just a few lines of code.
+---
+
+In this chapter, we will create a simple AI agent using Peargent. <br />
+Follow the steps below to get started quickly.
+
+## Create Your First Agent
+
+<div className='fd-steps [&_h3]:fd-step'>
+### Install Peargent
+It's recommended to install Peargent inside an **virtual environment (venv)**.
+```bash tab="pip"
+pip install peargent
+```
+### Create an Agent
+Now, let’s create our first **<u>Agent</u>**.
+An agent is simply an AI-powered entity that behaves like an autonomous helper, it can think, respond, and perform tasks based on the role, personality, and instructions you provide.<br />
+
+Start by creating a Python file named `quickstart.py`.
+Using the `create_agent` function, we can assign our agent a `name`, a `description`, and a `persona` (its role, tone, and behaviour).<br />
+
+You will also need to specify the `model` parameter to choose which LLM the agent will use.
+In this example, we’ll use OpenAI’s `GPT-5` model. (**<u>Available models</u>**)<br />
+
+Your agent can be anything you imagine!<br />
+For this example, we’ll create a friendly agent who speaks like **William Shakespeare**.
+```python tab="quickstart.py"
+from peargent import create_agent
+from peargent.models import openai
+```
+
+### Next Step
+Your content here
+</div>

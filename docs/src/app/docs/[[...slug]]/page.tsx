@@ -19,9 +19,9 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
-      <DocsBody>
+      <DocsTitle className=' text-primary'>{page.data.title}</DocsTitle>
+      <DocsDescription className=' -mt-5 '>{page.data.description}</DocsDescription>
+      <DocsBody className=' -mt-6'>
         <MDX
           components={getMDXComponents({
             // this allows you to link to other pages with relative file paths
