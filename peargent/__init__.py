@@ -3,6 +3,7 @@
 from os import name
 from typing import Optional, Union, Type
 from dotenv import load_dotenv
+import inspect
 
 from peargent.core.router import round_robin_router
 from peargent.core.state import State
@@ -206,10 +207,10 @@ def create_agent(name: str, description: str, persona: str, model=None, tools=No
     )
 
 def create_tool(
-    name: str,
-    description: str,
-    input_parameters: dict,
-    call_function,
+    name=None,
+    description=None,
+    input_parameters=None,
+    call_function=None,
     timeout: Optional[float] = None,
     max_retries: int = 0,
     retry_delay: float = 1.0,
@@ -218,13 +219,13 @@ def create_tool(
     output_schema: Optional[Type] = None
 ):
     """
-    Create a tool that agents can use.
+    Create a tool that agents can use. Works as both a function and a decorator.
 
     Args:
-        name: Tool name
-        description: Tool description
-        input_parameters: Dictionary of parameter names to types
-        call_function: Function to execute when tool is called
+        name: Tool name (required for function mode, optional for decorator mode - auto-inferred from function name)
+        description: Tool description (required for function mode, optional for decorator - uses docstring)
+        input_parameters: Dictionary of parameter names to types (required for function mode, optional for decorator - auto-inferred)
+        call_function: Function to execute when tool is called (required for function mode only)
         timeout: Maximum execution time in seconds (None = no limit)
         max_retries: Number of retry attempts on failure (0 = no retries)
         retry_delay: Initial delay between retries in seconds
@@ -233,37 +234,142 @@ def create_tool(
         output_schema: Optional Pydantic model for output validation
 
     Returns:
-        Tool instance
+        Tool instance (function mode) or decorated function (decorator mode)
 
     Examples:
-        # Basic tool
+        # FUNCTION MODE (backward compatible)
         tool = create_tool("calculator", "Does math", {"expr": str}, eval_expr)
 
-        # Tool with 5-second timeout
+        # Function mode with timeout
         tool = create_tool("api_call", "Calls API", {"url": str}, fetch_api,
                           timeout=5.0)
 
-        # Tool with retries and exponential backoff
-        tool = create_tool("flaky_api", "Sometimes fails", {"id": int}, call_api,
-                          max_retries=3, retry_delay=1.0, retry_backoff=True)
+        # DECORATOR MODE - Auto-inference
+        @create_tool()
+        def get_weather(city: str) -> dict:
+            '''Get current weather for a city'''
+            return weather_api.get(city)
 
-        # Tool with graceful error handling
-        tool = create_tool("optional_tool", "Nice to have", {"x": str}, process,
-                          on_error="return_error")
+        # Decorator mode - Custom parameters
+        @create_tool(name="search", description="Search docs", timeout=5.0)
+        def search_docs(query: str) -> list:
+            return db.search(query)
 
-        # Tool with output validation
-        class WeatherOutput(BaseModel):
-            temp: float
-            condition: str
-
-        tool = create_tool("weather", "Get weather", {"city": str}, get_weather,
-                          output_schema=WeatherOutput)
+        # Decorator mode - Without parentheses
+        @create_tool
+        def calculate(expr: str) -> float:
+            '''Evaluate expression'''
+            return eval(expr)
     """
+    # CASE 1: Function mode - call_function is provided
+    if call_function is not None:
+        # Traditional usage: create_tool(name, desc, params, func, ...)
+        if name is None:
+            raise ValueError("name is required when call_function is provided")
+        if description is None:
+            raise ValueError("description is required when call_function is provided")
+        if input_parameters is None:
+            raise ValueError("input_parameters is required when call_function is provided")
+
+        return Tool(
+            name=name,
+            description=description,
+            input_parameters=input_parameters,
+            call_function=call_function,
+            timeout=timeout,
+            max_retries=max_retries,
+            retry_delay=retry_delay,
+            retry_backoff=retry_backoff,
+            on_error=on_error,
+            output_schema=output_schema
+        )
+
+    # CASE 2: Decorator mode without parentheses - @create_tool
+    if callable(name):
+        func = name
+        return _create_decorated_tool(
+            func=func,
+            name=None,
+            description=None,
+            input_parameters=None,
+            timeout=timeout,
+            max_retries=max_retries,
+            retry_delay=retry_delay,
+            retry_backoff=retry_backoff,
+            on_error=on_error,
+            output_schema=output_schema
+        )
+
+    # CASE 3: Decorator mode with parentheses - @create_tool(...) or @create_tool()
+    def decorator(func):
+        return _create_decorated_tool(
+            func=func,
+            name=name,
+            description=description,
+            input_parameters=input_parameters,
+            timeout=timeout,
+            max_retries=max_retries,
+            retry_delay=retry_delay,
+            retry_backoff=retry_backoff,
+            on_error=on_error,
+            output_schema=output_schema
+        )
+
+    return decorator
+
+
+def _create_decorated_tool(
+    func,
+    name=None,
+    description=None,
+    input_parameters=None,
+    timeout=None,
+    max_retries=0,
+    retry_delay=1.0,
+    retry_backoff=True,
+    on_error="raise",
+    output_schema=None
+):
+    """
+    Internal helper to create a tool from a decorated function.
+    Auto-infers name, description, and parameters from the function.
+    """
+    # Infer tool name from function name if not provided
+    tool_name = name or func.__name__
+
+    # Infer description from docstring if not provided
+    if description is not None:
+        tool_description = description
+    else:
+        # Use docstring if available, otherwise generate default
+        tool_description = func.__doc__.strip() if func.__doc__ else f"Tool: {tool_name}"
+
+    # Infer input_parameters from function signature if not provided
+    if input_parameters is None:
+        sig = inspect.signature(func)
+        inferred_params = {}
+
+        for param_name, param in sig.parameters.items():
+            # Only include parameters without defaults as required
+            # Parameters with defaults are optional and shouldn't be in input_parameters
+            if param.default == inspect.Parameter.empty:
+                if param.annotation != inspect.Parameter.empty:
+                    # Use type annotation
+                    inferred_params[param_name] = param.annotation
+                else:
+                    # No type hint provided, default to str
+                    inferred_params[param_name] = str
+
+        tool_input_params = inferred_params
+    else:
+        tool_input_params = input_parameters
+
+    # Create and return the tool
     return Tool(
-        name=name,
-        description=description,
-        input_parameters=input_parameters,
-        call_function=call_function,
+        name=tool_name,
+        description=tool_description,
+        input_parameters=tool_input_params,
+        call_function=func,
         timeout=timeout,
         max_retries=max_retries,
         retry_delay=retry_delay,
@@ -271,6 +377,7 @@ def create_tool(
         on_error=on_error,
         output_schema=output_schema
     )
+
 
 def create_pool(agents, default_model=None, router=None, max_iter=5, default_state=None, history=None, tracing=False):
     """

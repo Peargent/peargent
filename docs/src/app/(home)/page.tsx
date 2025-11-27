@@ -56,7 +56,7 @@ export default function HomePage() {
           </div>
 
           {/* Hero Heading */}
-          <h1 className="font-display text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-black mb-6">
+          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-black mb-6">
             Building powerful AI agents, <br className="hidden sm:block" />
             <span className="text-[#7AA846]">
               made simple.
