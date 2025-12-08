@@ -3,14 +3,17 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import siteBg from '../assets/site-bg.png';
+import blackBg from '../assets/black.png';
+import greenBg from '../assets/green.png';
 import { useState, useEffect } from 'react';
-import { ArrowRightIcon, CheckIcon, CopyIcon, TerminalIcon } from 'lucide-react';
+import { ArrowRightIcon, CheckIcon, CopyIcon, TerminalIcon, Github, Star } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 export default function HomePage() {
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [version, setVersion] = useState('v0.1 Public Beta');
+  const [stars, setStars] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -23,6 +26,12 @@ export default function HomePage() {
       .then(res => res.json())
       .then(data => setVersion(data.version))
       .catch(() => setVersion('v0.1 Public Beta')); // Fallback
+
+    // Fetch GitHub stars
+    fetch('https://api.github.com/repos/quanta-naut/peargent')
+      .then(res => res.json())
+      .then(data => setStars(data.stargazers_count))
+      .catch((e) => console.error('Error fetching stars:', e));
 
     return () => {
       document.body.style.overflow = '';
@@ -111,6 +120,37 @@ export default function HomePage() {
             >
               <span>Get Started</span>
               <ArrowRightIcon className="w-4 h-4" />
+            </Link>
+
+            {/* GitHub Star Button */}
+            <Link
+              href="https://github.com/quanta-naut/peargent"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group/github relative w-full sm:w-auto px-6 h-12 rounded-lg flex items-center justify-center gap-3 font-medium transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/5 hover:shadow-black/10 overflow-hidden ring-1 ring-black/5"
+            >
+              <Image
+                src={blackBg}
+                alt=""
+                fill
+                className="object-cover absolute inset-0 opacity-[0.50] group-hover/github:opacity-70 transition-opacity duration-300"
+              />
+              <div className="relative z-10 flex items-center gap-3 text-black">
+                <div className="flex items-center gap-2 group-hover/github:gap-2.5 transition-all">
+                  <Github className="w-5 h-5 transition-transform group-hover/github:rotate-12" />
+                  <span className="font-semibold tracking-tight">Star on GitHub</span>
+                </div>
+
+                {stars !== null && (
+                  <>
+                    <div className="w-px h-4 bg-black/20 mx-2" />
+                    <Star className="w-4 h-4 transition-transform" />
+                    <span className="font-medium opacity-80 group-hover/github:opacity-100 transition-opacity -ml-1.5">
+                      {stars.toLocaleString()}
+                    </span>
+                  </>
+                )}
+              </div>
             </Link>
           </div>
         </div>
