@@ -15,10 +15,16 @@ from peargent.storage import (
     PostgreSQLHistoryStore,
     SQLiteHistoryStore,
     RedisHistoryStore,
+    InMemory,
+    File,
+    Sqlite,
+    Postgresql,
+    Redis,
 )
 
 # Export high-level interface
 from .history import ConversationHistory
+from peargent.config import HistoryConfig
 
 __all__ = [
     'Message',
@@ -31,4 +37,10 @@ __all__ = [
     'SQLiteHistoryStore',
     'RedisHistoryStore',
     'ConversationHistory',
+    'InMemory',
+    'File',
+    'Sqlite',
+    'Postgresql',
+    'Redis',
+    'HistoryConfig',
 ]
