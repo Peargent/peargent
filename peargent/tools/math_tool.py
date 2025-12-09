@@ -1,6 +1,6 @@
 # peargent/tools/math_tool.py
 
-from peargent.core.tool import Tool
+from peargent._core.tool import Tool
 
 
 def evaluate(expression: str) -> float:

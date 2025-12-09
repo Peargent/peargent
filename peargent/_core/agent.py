@@ -11,7 +11,7 @@ import re
 from typing import Optional, Dict, List, Any, Type, Union
 
 from jinja2 import Environment, FileSystemLoader
-from peargent.core.stopping import limit_steps
+from peargent._core.stopping import limit_steps
 from peargent.history import ConversationHistory
 from peargent.observability.cost_tracker import get_cost_tracker
 from peargent.observability import get_tracer, SpanType
@@ -686,7 +686,7 @@ class Agent:
                 elif update.is_agent_end:
                     print(f"\\n[DONE] {update.tokens} tokens, ${update.cost:.6f}")
         """
-        from peargent.core.streaming import StreamUpdate, UpdateType
+        from peargent._core.streaming import StreamUpdate, UpdateType
         import time
 
         # Yield agent start event

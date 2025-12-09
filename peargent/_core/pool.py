@@ -222,7 +222,7 @@ class Pool:
                 elif update.type == UpdateType.POOL_END:
                     print(f"\\n\\nPool complete!")
         """
-        from peargent.core.streaming import StreamUpdate, UpdateType
+        from peargent._core.streaming import StreamUpdate, UpdateType
         import time
 
         # Yield pool start event

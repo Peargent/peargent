@@ -5,18 +5,18 @@ from typing import Optional, Union, Type
 from dotenv import load_dotenv
 import inspect
 
-from peargent.core.router import round_robin_router
-from peargent.core.state import State
+from peargent._core.router import round_robin_router
+from peargent._core.state import State
 
 load_dotenv()
 
-from .core.agent import Agent
-from .core.tool import Tool
+from ._core.agent import Agent
+from ._core.tool import Tool
 from .tools import get_tool_by_name
-from peargent.core.router import RouterResult, RoutingAgent
-from .core.stopping import limit_steps, StepLimitCondition
-from .core.pool import Pool
-from .core.streaming import UpdateType, StreamUpdate
+from peargent._core.router import RouterResult, RoutingAgent
+from ._core.stopping import limit_steps, StepLimitCondition
+from ._core.pool import Pool
+from ._core.streaming import UpdateType, StreamUpdate
 from .history import (
     ConversationHistory,
     HistoryStore,
@@ -34,7 +34,7 @@ from .storage import (
     Postgresql,
     Redis
 )
-from .config import HistoryConfig
+from ._config import HistoryConfig
 
 # Try to import SQL-based stores
 try:

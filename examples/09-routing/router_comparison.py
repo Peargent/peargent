@@ -8,7 +8,7 @@ Demonstrates all three routing approaches:
 """
 
 from peargent import create_agent, create_pool, create_routing_agent, create_tool
-from peargent.core.router import RouterResult, round_robin_router
+from peargent import RouterResult, round_robin_router
 from peargent.models import groq
 
 

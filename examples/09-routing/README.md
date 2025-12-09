@@ -24,7 +24,7 @@ Peargent provides three ways to route agents in a pool:
 A custom router function must follow this signature:
 
 ```python
-from peargent.core.router import RouterResult
+from peargent import RouterResult
 
 def custom_router(state, call_count, last_result) -> RouterResult:
     """
@@ -49,7 +49,7 @@ def custom_router(state, call_count, last_result) -> RouterResult:
 
 ```python
 from peargent import create_pool
-from peargent.core.router import RouterResult
+from peargent import RouterResult
 
 def simple_router(state, call_count, last_result):
     if call_count == 0:
@@ -159,7 +159,7 @@ python examples/09-routing/router_comparison.py
 The `RouterResult` class is used to specify routing decisions:
 
 ```python
-from peargent.core.router import RouterResult
+from peargent import RouterResult
 
 # Route to a specific agent
 return RouterResult("AgentName")

@@ -6,7 +6,7 @@ routes to agents in a specific order.
 """
 
 from peargent import create_agent, create_pool, create_tool
-from peargent.core.router import RouterResult
+from peargent import RouterResult
 from peargent.models import groq
 
 

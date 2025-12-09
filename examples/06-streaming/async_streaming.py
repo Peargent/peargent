@@ -9,7 +9,7 @@ import sys
 from peargent import create_agent, create_pool
 from peargent.observability import enable_tracing
 from peargent.models import groq
-from peargent.core.streaming import UpdateType
+from peargent import UpdateType
 
 # Enable tracing
 tracer = enable_tracing()
@@ -150,7 +150,7 @@ async def example_4_pool_astream_observe():
 
     # Create pool
     def router(state, call_count, last_result):
-        from peargent.core.router import RouterResult
+        from peargent import RouterResult
         agents = ["Researcher", "Writer"]
         if call_count < len(agents):
             return RouterResult(agents[call_count])

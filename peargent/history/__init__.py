@@ -24,7 +24,7 @@ from peargent.storage import (
 
 # Export high-level interface
 from .history import ConversationHistory
-from peargent.config import HistoryConfig
+from peargent._config import HistoryConfig
 
 __all__ = [
     'Message',

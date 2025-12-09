@@ -44,7 +44,7 @@ agent2 = create_agent(
 )
 
 def simple_router(state, call_count, last_result):
-    from peargent.core.router import RouterResult
+    from peargent import RouterResult
     if call_count == 0:
         return RouterResult("Analyst")
     elif call_count == 1:
