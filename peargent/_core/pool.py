@@ -374,6 +374,32 @@ class Pool:
         finally:
             executor.shutdown(wait=False)
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert pool to serializable dictionary."""
+        # Try to identify router type
+        router_info = {"type": "custom", "name": "Unknown Router"}
+        
+        if hasattr(self.router, "decide"):
+            # It's a RoutingAgent
+            router_info = {
+                "type": "routing_agent",
+                "name": getattr(self.router, "name", "RoutingAgent"),
+                "persona": getattr(self.router, "persona", "")
+            }
+        elif hasattr(self.router, "__name__"):
+            router_info = {
+                "type": "function",
+                "name": self.router.__name__
+            }
+
+        return {
+            "type": "pool",
+            "agents": [agent.to_dict() for agent in self.agents_dict.values()],
+            "router": router_info,
+            "max_iter": self.max_iter,
+            "agent_names": self.agents_names
+        }
+
     async def astream_observe(self, user_input: str):
         """
         Async version of stream_observe() - Stream pool execution asynchronously with metadata.

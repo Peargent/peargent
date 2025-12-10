@@ -1157,3 +1157,15 @@ class Agent:
             }))
 
         return ordered_results
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert agent to serializable dictionary."""
+        return {
+            "name": self.name,
+            "description": self.description,
+            "persona": self.persona,
+            "type": "agent",
+            "model": getattr(self.model, 'model_name', str(self.model)),
+            "tools": [tool.to_dict() for tool in self.tools.values()],
+            "stop_conditions": str(self.stop_conditions) if self.stop_conditions else None,
+            "context_strategy": self.context_strategy
+        }

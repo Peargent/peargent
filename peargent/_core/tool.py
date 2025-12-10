@@ -172,3 +172,16 @@ class Tool:
         else:
             # Shouldn't reach here due to validation in __init__
             raise error
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert tool to serializable dictionary."""
+        return {
+            "name": self.name,
+            "description": self.description,
+            "input_parameters": {
+                k: v.__name__ if isinstance(v, type) else str(v)
+                for k, v in self.input_parameters.items()
+            },
+            "timeout": self.timeout,
+            "type": "tool"
+        }
