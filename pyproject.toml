@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "peargent"
-version = "0.1.4"
+version = "0.1.5"
 description = "A modern Python framework for building intelligent AI agents with advanced tracing, history management, and seamless LLM integration"
 readme = "README.md"
 requires-python = ">=3.9"
