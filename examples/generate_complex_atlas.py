@@ -6,7 +6,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from peargent import create_agent, create_pool, create_tool, create_routing_agent
 from peargent.atlas import create_pear
+<<<<<<< HEAD
 from peargent.models import groq
+=======
+>>>>>>> 4831b3c (organising repos)
 
 # --- Create Mock Tools ---
 
@@ -89,7 +92,11 @@ agent_researcher = create_agent(
     description="Conducts deep research and data analysis.",
     persona=long_persona_researcher,
     tools=[search_web, read_file, analyze_data], # 3 tools
+<<<<<<< HEAD
     model=groq("groq/llama-3.2-70b-instruct")
+=======
+    model="gpt-4-turbo"
+>>>>>>> 4831b3c (organising repos)
 )
 
 agent_editor = create_agent(
@@ -97,7 +104,11 @@ agent_editor = create_agent(
     description="Reviews and refines content.",
     persona=long_persona_editor,
     tools=[summarize_text, translate_text, write_file], # 3 tools
+<<<<<<< HEAD
     model=groq("groq/llama-3.2-70b-instruct")
+=======
+    model="claude-3-opus"
+>>>>>>> 4831b3c (organising repos)
 )
 
 agent_developer = create_agent(
@@ -105,7 +116,11 @@ agent_developer = create_agent(
     description="Writes and executes code.",
     persona=long_persona_developer,
     tools=[execute_python, query_database, read_file], # 3 tools
+<<<<<<< HEAD
     model=groq("groq/llama-3.2-70b-instruct")
+=======
+    model="gpt-4-code-interpreter"
+>>>>>>> 4831b3c (organising repos)
 )
 
 agent_creative = create_agent(
@@ -113,7 +128,11 @@ agent_creative = create_agent(
     description="Generates assets and visual concepts.",
     persona=long_persona_creative,
     tools=[generate_image, send_email, schedule_meeting], # 3 tools
+<<<<<<< HEAD
     model=groq("groq/llama-3.2-70b-instruct")
+=======
+    model="dall-e-3"
+>>>>>>> 4831b3c (organising repos)
 )
 
 # --- Create Router and Pool ---
@@ -126,7 +145,11 @@ You do not perform the work yourself; you manage the team of experts."""
 
 router_agent = create_routing_agent(
     name="Orchestrator",
+<<<<<<< HEAD
     model=groq("groq/llama-3.2-70b-instruct"),
+=======
+    model="gpt-4",
+>>>>>>> 4831b3c (organising repos)
     persona=router_persona,
     agents=all_agents
 )
