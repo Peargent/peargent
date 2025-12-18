@@ -1,8 +1,0 @@
-{
-  "title": "Error Handling in Tools",
-  "description": "Handling errors, retries, and timeouts in tools",
-  "pages": [
-    "retries",
-    "timeout"
-  ]
-}

@@ -1,8 +1,0 @@
-{
-  "title": "Structured Output",
-  "description": "Getting structured output from agents and tools",
-  "pages": [
-    "agents-output",
-    "tools-output"
-  ]
-}
