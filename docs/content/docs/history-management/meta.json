@@ -1,5 +1,0 @@
-{
-  "title": "History Management",
-  "description": "Advanced history features and custom storage backends",
-  "pages": ["custom-storage", "manual-threads", "reference"]
-}

@@ -1,8 +1,0 @@
-{
-  "title": "Streaming",
-  "description": "Stream agent responses in real-time.",
-  "pages": [
-    "stream-observe",
-    "async-streaming"
-  ]
-}
