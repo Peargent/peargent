@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from peargent import create_agent, create_pool, create_tool, create_routing_agent
 from peargent.atlas import create_pear
+from peargent.models import groq
 
 # --- Create Mock Tools ---
 
@@ -88,7 +89,7 @@ agent_researcher = create_agent(
     description="Conducts deep research and data analysis.",
     persona=long_persona_researcher,
     tools=[search_web, read_file, analyze_data], # 3 tools
-    model="gpt-4-turbo"
+    model=groq("groq/llama-3.2-70b-instruct")
 )
 
 agent_editor = create_agent(
@@ -96,7 +97,7 @@ agent_editor = create_agent(
     description="Reviews and refines content.",
     persona=long_persona_editor,
     tools=[summarize_text, translate_text, write_file], # 3 tools
-    model="claude-3-opus"
+    model=groq("groq/llama-3.2-70b-instruct")
 )
 
 agent_developer = create_agent(
@@ -104,7 +105,7 @@ agent_developer = create_agent(
     description="Writes and executes code.",
     persona=long_persona_developer,
     tools=[execute_python, query_database, read_file], # 3 tools
-    model="gpt-4-code-interpreter"
+    model=groq("groq/llama-3.2-70b-instruct")
 )
 
 agent_creative = create_agent(
@@ -112,7 +113,7 @@ agent_creative = create_agent(
     description="Generates assets and visual concepts.",
     persona=long_persona_creative,
     tools=[generate_image, send_email, schedule_meeting], # 3 tools
-    model="dall-e-3"
+    model=groq("groq/llama-3.2-70b-instruct")
 )
 
 # --- Create Router and Pool ---
@@ -125,7 +126,7 @@ You do not perform the work yourself; you manage the team of experts."""
 
 router_agent = create_routing_agent(
     name="Orchestrator",
-    model="gpt-4",
+    model=groq("groq/llama-3.2-70b-instruct"),
     persona=router_persona,
     agents=all_agents
 )

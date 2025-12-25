@@ -375,21 +375,33 @@ class Pool:
             executor.shutdown(wait=False)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert pool to serializable dictionary."""
-        # Try to identify router type
+        """Convert pool to serializable dictionary with complete details."""
+        from peargent.atlas.serializer import (
+            get_source_code,
+            serialize_model_info,
+            serialize_history_config
+        )
+        
+        # Serialize router based on type
         router_info = {"type": "custom", "name": "Unknown Router"}
         
         if hasattr(self.router, "decide"):
-            # It's a RoutingAgent
-            router_info = {
-                "type": "routing_agent",
-                "name": getattr(self.router, "name", "RoutingAgent"),
-                "persona": getattr(self.router, "persona", "")
-            }
-        elif hasattr(self.router, "__name__"):
+            # It's a RoutingAgent - use its to_dict if available
+            if hasattr(self.router, "to_dict"):
+                router_info = self.router.to_dict()
+            else:
+                router_info = {
+                    "type": "routing_agent",
+                    "name": getattr(self.router, "name", "RoutingAgent"),
+                    "persona": getattr(self.router, "persona", ""),
+                    "agents": getattr(self.router, "agents", [])
+                }
+        elif callable(self.router):
+            # Function-based router
             router_info = {
                 "type": "function",
-                "name": self.router.__name__
+                "name": getattr(self.router, "__name__", "anonymous"),
+                "source_code": get_source_code(self.router)
             }
 
         return {
@@ -397,7 +409,10 @@ class Pool:
             "agents": [agent.to_dict() for agent in self.agents_dict.values()],
             "router": router_info,
             "max_iter": self.max_iter,
-            "agent_names": self.agents_names
+            "agent_names": self.agents_names,
+            "default_model": serialize_model_info(self.default_model),
+            "history": serialize_history_config(self.history),
+            "tracing": self.tracing
         }
 
     async def astream_observe(self, user_input: str):

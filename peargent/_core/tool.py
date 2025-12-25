@@ -174,7 +174,9 @@ class Tool:
             raise error
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert tool to serializable dictionary."""
+        """Convert tool to serializable dictionary with complete details."""
+        from peargent.atlas.serializer import get_source_code, serialize_output_schema
+        
         return {
             "name": self.name,
             "description": self.description,
@@ -182,6 +184,13 @@ class Tool:
                 k: v.__name__ if isinstance(v, type) else str(v)
                 for k, v in self.input_parameters.items()
             },
+            "source_code": get_source_code(self.call_function),
             "timeout": self.timeout,
+            "max_retries": self.max_retries,
+            "retry_delay": self.retry_delay,
+            "retry_backoff": self.retry_backoff,
+            "on_error": self.on_error,
+            "output_schema": serialize_output_schema(self.output_schema),
             "type": "tool"
         }
+
