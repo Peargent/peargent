@@ -62,4 +62,4 @@ include = ["peargent*"]
 exclude = ["peargent.*test*", "tests*", "examples*", "docs*"]
 
 [tool.setuptools.package-data]
-peargent = ["templates/*.j2"]
+peargent = ["_templates/*.j2"]
