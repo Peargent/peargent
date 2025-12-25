@@ -9,6 +9,8 @@
 
 A modern Python framework for building intelligent AI agents with simplicity at its core.
 
+<!-- Workflow trigger test -->
+
 ## Features
 
 - **Advanced Tracing** - Track every action, decision, and API call with detailed telemetry and database persistence
