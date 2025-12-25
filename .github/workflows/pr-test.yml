@@ -57,3 +57,14 @@ jobs:
         name: package-distribution
         path: dist/
         retention-days: 7
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/main
+=======
+
+>>>>>>> 3e96a1f (fixing the workflow)
+>>>>>>> f2b8f6a (fixing the workflow)
