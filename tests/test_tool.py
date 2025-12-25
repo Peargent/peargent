@@ -43,6 +43,7 @@ class TestToolCreation:
 
         assert tool.name == "greet"
         assert "name" in tool.input_parameters
+        assert tool.input_parameters["name"] == str
 
     def test_create_tool_without_parameters(self) -> None:
         """Test creating a tool with no input parameters."""
@@ -59,6 +60,23 @@ class TestToolCreation:
 
         assert tool.name == "get_constant"
         assert len(tool.input_parameters) == 0
+
+    def test_input_parameter_types(self) -> None:
+        """Test that input parameter types are correctly stored."""
+
+        def multi_type_func(name: str, age: int, active: bool) -> str:
+            return f"{name} is {age} years old"
+
+        tool = create_tool(
+            name="multi_type",
+            description="Function with multiple parameter types",
+            input_parameters={"name": str, "age": int, "active": bool},
+            call_function=multi_type_func,
+        )
+
+        assert tool.input_parameters["name"] == str
+        assert tool.input_parameters["age"] == int
+        assert tool.input_parameters["active"] == bool
 
 
 class TestToolExecution:
