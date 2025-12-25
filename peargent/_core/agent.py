@@ -1157,15 +1157,31 @@ class Agent:
             }))
 
         return ordered_results
+
     def to_dict(self) -> Dict[str, Any]:
-        """Convert agent to serializable dictionary."""
+        """Convert agent to serializable dictionary with complete details."""
+        from peargent.atlas.serializer import (
+            serialize_model_info,
+            serialize_history_config,
+            serialize_output_schema,
+            serialize_stop_conditions
+        )
+        
         return {
             "name": self.name,
             "description": self.description,
             "persona": self.persona,
             "type": "agent",
-            "model": getattr(self.model, 'model_name', str(self.model)),
+            "model": serialize_model_info(self.model),
             "tools": [tool.to_dict() for tool in self.tools.values()],
-            "stop_conditions": str(self.stop_conditions) if self.stop_conditions else None,
-            "context_strategy": self.context_strategy
+            "stop_conditions": serialize_stop_conditions(self.stop_conditions),
+            "history": serialize_history_config(self.history),
+            "auto_manage_context": self.auto_manage_context,
+            "max_context_messages": self.max_context_messages,
+            "context_strategy": self.context_strategy,
+            "summarize_model": serialize_model_info(self.summarize_model) if self.summarize_model else None,
+            "tracing": self.tracing,
+            "output_schema": serialize_output_schema(self.output_schema),
+            "max_retries": self.max_retries
         }
+

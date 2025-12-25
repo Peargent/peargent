@@ -136,3 +136,18 @@ class RoutingAgent(Agent):
             raise ValueError(f"RoutingAgent produced invalid agent name: '{response}'")
 
         return response
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert routing agent to serializable dictionary."""
+        from peargent.atlas.serializer import serialize_model_info, serialize_stop_conditions
+        
+        return {
+            "type": "routing_agent",
+            "name": self.name,
+            "persona": self.persona,
+            "description": self.description,
+            "model": serialize_model_info(self.model),
+            "agents": self.agents,
+            "stop_conditions": serialize_stop_conditions(self.stop_conditions)
+        }
+
