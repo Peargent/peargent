@@ -9,6 +9,9 @@ jobs:
   test-and-build:
     name: Test and Build Package
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
 
     steps:
     - name: Checkout PR code
@@ -16,10 +19,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
       run: |
@@ -49,8 +52,12 @@ jobs:
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
+      if: matrix.python-version == '3.11'
       with:
         name: package-distribution
         path: dist/
         retention-days: 7
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
