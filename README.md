@@ -44,10 +44,11 @@ print(result)
 
 For more examples and detailed documentation, visit [Docs](https://peargent.online).
 
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) to get started.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
