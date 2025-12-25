@@ -66,7 +66,7 @@ class Agent:
 
         self.jinja_env = Environment(
             loader=FileSystemLoader(
-                os.path.join(os.path.dirname(__file__), "..", "templates")
+                os.path.join(os.path.dirname(__file__), "..", "_templates")
             )
         )
 

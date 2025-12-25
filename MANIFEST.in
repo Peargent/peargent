@@ -2,7 +2,7 @@ include README.md
 include LICENSE
 include requirements.txt
 recursive-include peargent *.py
-recursive-include peargent/templates *.j2
+recursive-include peargent/_templates *.j2
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude tests *

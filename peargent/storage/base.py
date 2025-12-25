@@ -13,7 +13,7 @@ import os
 from jinja2 import Environment, FileSystemLoader
 
 # Initialize Jinja2 environment for templates
-_templates_dir = os.path.join(os.path.dirname(__file__), "..", "..", "templates")
+_templates_dir = os.path.join(os.path.dirname(__file__), "..", "_templates")
 _jinja_env = Environment(loader=FileSystemLoader(_templates_dir))
 
 
