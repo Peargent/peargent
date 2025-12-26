@@ -3,3 +3,5 @@ def main():
 
 for i in 10:
   print i
+
+"hello, world this is comment"
