@@ -151,7 +151,7 @@ def agent_integration_demo():
                 "4. Provide a concise summary\n"
                 "Be thorough but concise in your analysis."
             ),
-            model=gemini("gemini-2.0-flash-exp"),
+            model=gemini("gemini-2.5-flash-lite"),
             tools=[text_extractor]
         )
         

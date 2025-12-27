@@ -73,7 +73,7 @@ def main():
                 "You are a document analysis expert. When given a document, "
                 "extract the text and provide a concise summary of its main points."
             ),
-            model=gemini("gemini-2.0-flash-exp"),
+            model=gemini("gemini-2.5-flash-lite"),
             tools=[text_extractor]
         )
         
