@@ -11,8 +11,9 @@ Demonstrates advanced features including:
 import os
 from pathlib import Path
 from peargent import create_agent
-from peargent.tools.text_extraction_tool import TextExtractionTool, extract_text
-from peargent.models import groq
+from peargent.tools import text_extractor
+from peargent.tools.text_extraction_tool import extract_text
+from peargent.models import gemini
 
 
 def create_sample_files():
@@ -134,9 +135,6 @@ def agent_integration_demo():
     print("Agent-Based Document Analysis")
     print("=" * 60)
     
-    # Create text extraction tool
-    extractor = TextExtractionTool()
-    
     print("\n Agent analyzing 'ai_overview.html'...")
     print("-" * 60)
     
@@ -153,8 +151,8 @@ def agent_integration_demo():
                 "4. Provide a concise summary\n"
                 "Be thorough but concise in your analysis."
             ),
-            model=groq("llama-3.3-70b-versatile"),
-            tools=[extractor]
+            model=gemini("gemini-2.0-flash-exp"),
+            tools=[text_extractor]
         )
         
         response = agent.run(
@@ -164,9 +162,9 @@ def agent_integration_demo():
         print(f"\n{response}")
     except Exception as e:
         print(f"\n Note: Agent requires API key. Skipping agent demo.")
-        print("Set GROQ_API_KEY in your .env file to run agent integration.")
+        print("Set GEMINI_API_KEY in your .env file to run agent integration.")
         print("\nDirect extraction works without API key:")
-        result = extractor.run({"file_path": "ai_overview.html"})
+        result = text_extractor.run({"file_path": "ai_overview.html"})
         if result["success"]:
             print(f"\n{result['text']}")
 

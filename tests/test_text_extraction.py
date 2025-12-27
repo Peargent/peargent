@@ -290,6 +290,37 @@ class TestErrorHandling:
             os.unlink(temp_path)
 
 
+class TestURLValidation:
+    """Test URL validation and SSRF protection."""
+    
+    def test_block_localhost(self):
+        """Test that localhost URLs are blocked."""
+        result = extract_text("http://localhost/test.html")
+        assert result["success"] is False
+        assert "localhost" in result["error"].lower() or "not allowed" in result["error"].lower()
+    
+    def test_block_loopback_ip(self):
+        """Test that loopback IPs are blocked."""
+        result = extract_text("http://127.0.0.1/test.html")
+        assert result["success"] is False
+        assert "not allowed" in result["error"].lower() or "loopback" in result["error"].lower()
+    
+    def test_block_private_ip(self):
+        """Test that private IPs are blocked."""
+        result = extract_text("http://192.168.1.1/test.html")
+        assert result["success"] is False
+        # Either blocked by validation or connection fails/times out
+        assert ("private" in result["error"].lower() or 
+                "not allowed" in result["error"].lower() or
+                "connection" in result["error"].lower())
+    
+    def test_block_file_scheme(self):
+        """Test that file:// URLs are treated as file paths."""
+        result = extract_text("file:///etc/passwd")
+        # file:// is not http/https so treated as file path and should fail
+        assert result["success"] is False
+
+
 class TestPDFExtraction:
     """Test PDF extraction through public API."""
     

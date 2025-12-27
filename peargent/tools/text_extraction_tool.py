@@ -7,8 +7,56 @@ import os
 from pathlib import Path
 from typing import Dict, Any, Optional
 import re
+import ipaddress
+from urllib.parse import urlparse
 
 from peargent import Tool
+
+
+def _validate_url(url: str) -> None:
+    """
+    Validate URL to prevent SSRF attacks.
+    
+    Args:
+        url: URL to validate
+        
+    Raises:
+        ValueError: If URL is invalid or potentially dangerous
+    """
+    try:
+        parsed = urlparse(url)
+        
+        # Only allow http and https schemes
+        if parsed.scheme not in ('http', 'https'):
+            raise ValueError(f"Only HTTP and HTTPS URLs are allowed, got: {parsed.scheme}")
+        
+        # Check if hostname exists
+        if not parsed.hostname:
+            raise ValueError("URL must have a valid hostname")
+        
+        # Block localhost and loopback addresses
+        hostname_lower = parsed.hostname.lower()
+        if hostname_lower in ('localhost', '127.0.0.1', '::1', '0.0.0.0'):
+            raise ValueError("Access to localhost is not allowed")
+        
+        # Try to resolve and check if it's a private IP
+        try:
+            # Check if hostname is an IP address
+            ip = ipaddress.ip_address(parsed.hostname)
+            
+            # Block private, loopback, link-local, and multicast addresses
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved:
+                raise ValueError(f"Access to private/internal IP addresses is not allowed: {ip}")
+        except ValueError:
+            # Not an IP address, it's a hostname - that's okay
+            # We could add DNS resolution here, but it adds complexity
+            # and might block legitimate internal hostnames
+            pass
+            
+    except Exception as e:
+        if isinstance(e, ValueError) and "not allowed" in str(e):
+            raise
+        raise ValueError(f"Invalid URL: {e}")
 
 
 def extract_text(
@@ -40,7 +88,11 @@ def extract_text(
         >>> print(result["format"])
     """
     try:
-        # Validate file exists
+        # Validate URL if it's a URL
+        if file_path.startswith(("http://", "https://")):
+            _validate_url(file_path)
+        
+        # Validate file exists (if not a URL)
         if not file_path.startswith(("http://", "https://")):
             if not os.path.exists(file_path):
                 return {

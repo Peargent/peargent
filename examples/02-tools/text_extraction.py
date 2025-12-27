@@ -6,17 +6,14 @@ using the TextExtractionTool.
 """
 
 from peargent import create_agent
-from peargent.tools.text_extraction_tool import TextExtractionTool
-from peargent.models import groq
+from peargent.tools import text_extractor
+from peargent.models import gemini
 
 
 def main():
     print("=" * 60)
     print("Text Extraction Tool - Basic Example")
     print("=" * 60)
-    
-    # Create the text extraction tool
-    extractor = TextExtractionTool()
     
     # Example 1: Extract text from a local file
     print("\n1. Extracting text from local file:")
@@ -43,7 +40,7 @@ def main():
         f.write(sample_html)
     
     # Extract text
-    result = extractor.run({"file_path": "sample.html"})
+    result = text_extractor.run({"file_path": "sample.html"})
     
     if result["success"]:
         print(f"Format: {result['format']}")
@@ -55,7 +52,7 @@ def main():
     print("\n\n2. Extracting text with metadata:")
     print("-" * 60)
     
-    result = extractor.run({"file_path": "sample.html", "extract_metadata": True})
+    result = text_extractor.run({"file_path": "sample.html", "extract_metadata": True})
     
     if result["success"]:
         print(f"Format: {result['format']}")
@@ -76,8 +73,8 @@ def main():
                 "You are a document analysis expert. When given a document, "
                 "extract the text and provide a concise summary of its main points."
             ),
-            model=groq("llama-3.3-70b-versatile"),
-            tools=[extractor]
+            model=gemini("gemini-2.0-flash-exp"),
+            tools=[text_extractor]
         )
         
         # Ask the agent to analyze the document
@@ -85,9 +82,9 @@ def main():
         print(f"\nAgent Response:\n{response}")
     except Exception as e:
         print(f"Note: Agent requires API key. Skipping agent demo.")
-        print("Set GROQ_API_KEY in your .env file to run this example.")
+        print("Set GEMINI_API_KEY in your .env file to run this example.")
         print("\nDirect extraction works without API key:")
-        result = extractor.run({"file_path": "sample.html"})
+        result = text_extractor.run({"file_path": "sample.html"})
         if result["success"]:
             print(f"Text: {result['text'][:150]}...")
     
