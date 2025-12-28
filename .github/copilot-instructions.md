@@ -73,21 +73,37 @@ Everything else is **non-blocking**.
 
 ## Import Rule (CRITICAL)
 
-✅ Allowed:
+### For User-Facing Code (Examples, Documentation, etc)
+
+✅ **MUST** use public APIs:
 
 ```python
 from peargent import create_agent, create_tool, create_pool
 from peargent.models import groq, anthropic, openai
 ```
 
-❌ Forbidden:
+❌ **FORBIDDEN** (blocking):
 
 ```python
 from peargent._core.agent import Agent
 from peargent._core.tool import Tool
 ```
 
-Importing internal modules is always **blocking**.
+### For Internal Modules (Built-in Tools, Core Implementation)
+
+✅ **SHOULD** use private APIs:
+
+```python
+from peargent._core.tool import Tool
+from peargent._core.agent import Agent
+```
+
+❌ Avoid public API re-exports in internal code.
+
+**Rule of thumb:**
+- Files in `examples/`, user documentation → **public API only**
+- Files in `peargent/tools/`, `peargent/_core/` → **private API preferred**
+- When in doubt: if users will see or copy the code, use public API
 
 ---
 
