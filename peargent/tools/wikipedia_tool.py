@@ -51,19 +51,7 @@ def search_wikipedia(
         >>> print(result["metadata"]["url"])
         >>> print(result["metadata"]["title"])
     """
-    try:
-        if requests is None:
-            return {
-                "text": "",
-                "metadata": {},
-                "format": "wikipedia",
-                "success": False,
-                "error": (
-                    "requests library is required for Wikipedia extraction. "
-                    "Install it with: pip install requests"
-                )
-            }
-    except NameError:
+    if requests is None:
         return {
             "text": "",
             "metadata": {},
