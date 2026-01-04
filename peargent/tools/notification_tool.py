@@ -262,6 +262,11 @@ def send_notification(
     - If Jinja2 is installed: Uses {{ variable }}, conditionals, loops, filters
     - If Jinja2 not available: Falls back to simple {variable} replacement
     
+    Automatically detects and uses available email provider:
+    - If SMTP credentials not available but Resend API key is: uses Resend
+    - If Resend API key not available but SMTP credentials are: uses SMTP
+    - Explicit provider parameter overrides with fallback if not available
+    
     Credentials are loaded from environment variables:
     - SMTP: SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
     - Resend: RESEND_API_KEY
@@ -272,7 +277,7 @@ def send_notification(
         body: Email body (supports templating when template_vars provided, plain text or HTML)
         from_email: Sender email address
         template_vars: Dictionary of variables for template rendering (optional)
-        provider: Email provider ('smtp' or 'resend', default: 'smtp')
+        provider: Email provider ('smtp' or 'resend', default: 'smtp', auto-fallback enabled)
         smtp_use_tls: Whether to use TLS encryption for SMTP (default: True)
         
     Returns:
@@ -352,6 +357,23 @@ def send_notification(
         subject = _apply_template(subject, template_vars)
         body = _apply_template(body, template_vars)
     
+    # Auto-detect provider based on available credentials
+    # Check what credentials are available
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_username = os.getenv("SMTP_USERNAME")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    smtp_available = all([smtp_host, smtp_username, smtp_password])
+    
+    resend_api_key = os.getenv("RESEND_API_KEY")
+    resend_available = bool(resend_api_key)
+    
+    # If default provider (smtp) is requested but not available, try fallback
+    if provider == "smtp" and not smtp_available and resend_available:
+        provider = "resend"
+    # If resend is requested but not available, try fallback to smtp
+    elif provider == "resend" and not resend_available and smtp_available:
+        provider = "smtp"
+    
     # Validate provider
     if provider not in ["smtp", "resend"]:
         return {
@@ -363,7 +385,7 @@ def send_notification(
     
     # Send via SMTP
     if provider == "smtp":
-        # Load from environment variables
+        # Load from environment variables (some already loaded for detection)
         smtp_host = os.getenv("SMTP_HOST")
         smtp_port = int(os.getenv("SMTP_PORT", "587"))
         smtp_username = os.getenv("SMTP_USERNAME")
@@ -379,13 +401,18 @@ def send_notification(
             if not smtp_password:
                 missing.append("SMTP_PASSWORD")
             
+            # Check if alternative provider is available
+            alternative_msg = ""
+            if os.getenv("RESEND_API_KEY"):
+                alternative_msg = " Alternatively, set RESEND_API_KEY to use Resend provider."
+            
             return {
                 "success": False,
                 "provider": "smtp",
                 "message_id": None,
                 "error": (
                     f"Missing SMTP configuration: {', '.join(missing)}. "
-                    "Set these in .env file."
+                    f"Set these in .env file.{alternative_msg}"
                 )
             }
         
@@ -403,16 +430,24 @@ def send_notification(
     
     # Send via Resend
     elif provider == "resend":
-        # Load from environment variables
+        # Load from environment variables (already loaded for detection)
         resend_api_key = os.getenv("RESEND_API_KEY")
         
         if not resend_api_key:
+            # Check if alternative provider is available
+            alternative_msg = ""
+            smtp_host = os.getenv("SMTP_HOST")
+            smtp_username = os.getenv("SMTP_USERNAME")
+            smtp_password = os.getenv("SMTP_PASSWORD")
+            if all([smtp_host, smtp_username, smtp_password]):
+                alternative_msg = " Alternatively, configure SMTP credentials to use SMTP provider."
+            
             return {
                 "success": False,
                 "provider": "resend",
                 "message_id": None,
                 "error": (
-                    "Missing Resend API key. Set RESEND_API_KEY in .env file."
+                    f"Missing Resend API key. Set RESEND_API_KEY in .env file.{alternative_msg}"
                 )
             }
         
