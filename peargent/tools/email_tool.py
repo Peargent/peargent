@@ -116,22 +116,29 @@ def _send_smtp(
         msg.attach(part)
         
         # Connect and send
-        if use_tls:
-            server = smtplib.SMTP(smtp_host, smtp_port)
-            server.starttls()
-        else:
-            server = smtplib.SMTP_SSL(smtp_host, smtp_port)
-        
-        server.login(smtp_username, smtp_password)
-        server.send_message(msg)
-        server.quit()
-        
-        return {
-            "success": True,
-            "provider": "smtp",
-            "message_id": None,
-            "error": None
-        }
+        server = None
+        try:
+            if use_tls:
+                server = smtplib.SMTP(smtp_host, smtp_port)
+                server.starttls()
+            else:
+                server = smtplib.SMTP_SSL(smtp_host, smtp_port)
+            
+            server.login(smtp_username, smtp_password)
+            server.send_message(msg)
+            
+            return {
+                "success": True,
+                "provider": "smtp",
+                "message_id": None,
+                "error": None
+            }
+        finally:
+            if server is not None:
+                try:
+                    server.quit()
+                except Exception:
+                    pass  # Ignore errors during cleanup
         
     except Exception as e:
         error_type = type(e).__name__
@@ -387,7 +394,15 @@ def send_notification(
     if provider == "smtp":
         # Load from environment variables (some already loaded for detection)
         smtp_host = os.getenv("SMTP_HOST")
-        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        try:
+            smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        except (ValueError, TypeError):
+            return {
+                "success": False,
+                "provider": "smtp",
+                "message_id": None,
+                "error": "Invalid SMTP_PORT: must be a numeric value"
+            }
         smtp_username = os.getenv("SMTP_USERNAME")
         smtp_password = os.getenv("SMTP_PASSWORD")
         
