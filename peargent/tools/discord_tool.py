@@ -160,7 +160,7 @@ def _send_webhook_message(
             }
         elif response.status_code == 429:
             # Rate limited - return error (no automatic retry)
-            retry_after = response.json().get("retry_after", "unknown")
+            retry_after = response.json().get("retry_after", "unknown") if response.content else "unknown"
             return {
                 "success": False,
                 "error": f"Rate limited by Discord API. Retry after {retry_after} seconds."
