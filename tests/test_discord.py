@@ -357,7 +357,7 @@ class TestDiscordMessaging:
         )
         
         assert result["success"] is False
-        assert "either content or embed" in result["error"]
+        assert "Either 'content' or 'embed' parameter is required" in result["error"]
     
     @patch('peargent.tools.discord_tool.requests', None)
     def test_missing_requests_library(self):

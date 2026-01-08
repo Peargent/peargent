@@ -134,13 +134,6 @@ def _send_webhook_message(
         if embed:
             payload["embeds"] = [embed]
         
-        # Validate payload has at least content or embed
-        if not content and not embed:
-            return {
-                "success": False,
-                "error": "Message must have either content or embed"
-            }
-        
         # Send request
         headers = {
             "Content-Type": "application/json"
@@ -160,13 +153,19 @@ def _send_webhook_message(
             }
         elif response.status_code == 429:
             # Rate limited - return error (no automatic retry)
-            retry_after = response.json().get("retry_after", "unknown") if response.content else "unknown"
+            try:
+                retry_after = response.json().get("retry_after", "unknown") if response.content else "unknown"
+            except (ValueError, KeyError):
+                retry_after = "unknown"
             return {
                 "success": False,
                 "error": f"Rate limited by Discord API. Retry after {retry_after} seconds."
             }
         else:
-            error_data = response.json() if response.content else {}
+            try:
+                error_data = response.json() if response.content else {}
+            except ValueError:
+                error_data = {}
             error_msg = error_data.get("message", f"HTTP {response.status_code}")
             return {
                 "success": False,
@@ -254,6 +253,13 @@ def send_discord_message(
         ...     }
         ... )
     """
+    # Early validation: ensure either content or embed is provided
+    if not content and not embed:
+        return {
+            "success": False,
+            "error": "Either 'content' or 'embed' parameter is required."
+        }
+    
     # Load webhook URL from environment if not provided
     if not webhook_url:
         webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
