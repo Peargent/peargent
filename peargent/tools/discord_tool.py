@@ -330,46 +330,13 @@ class DiscordTool(Tool):
                 "Webhook URL loaded from DISCORD_WEBHOOK_URL env variable if not provided. "
                 "Supports Jinja2 templating when available ({{ variable }}, loops, conditionals, filters) "
                 "or simple {variable} replacement as fallback. "
-                "Required: either content or embed. "
-                "Parameters: content (str, optional), embed (dict, optional), "
-                "webhook_url (str, optional), template_vars (dict, optional), "
-                "username (str, optional), avatar_url (str, optional)."
+                "Either content (str) or embed (dict) is required. "
+                "Optional parameters: webhook_url (str), template_vars (dict), "
+                "username (str), avatar_url (str)."
             ),
-            input_parameters={
-                "content": str,
-                "embed": dict,
-                "webhook_url": str,
-                "template_vars": dict,
-                "username": str,
-                "avatar_url": str
-            },
+            input_parameters={},  # No strictly required parameters - webhook from env, content/embed either-or
             call_function=send_discord_message
         )
-    
-    def _validate_input(self, args: Dict[str, Any]) -> None:
-        """
-        Validate input parameters with support for optional parameters.
-        
-        All parameters are optional in Discord webhook usage:
-        - content: optional (embed can be used instead)
-        - webhook_url: optional (loaded from env)
-        - embed: optional (content can be used instead)
-        - Other params: optional
-        
-        Runtime validation ensures content or embed is provided.
-        """
-        # Check parameter types for provided arguments
-        for key, value in args.items():
-            if key in self.input_parameters:
-                expected_type = self.input_parameters[key]
-                if not isinstance(value, expected_type):
-                    raise TypeError(
-                        f"Parameter '{key}' should be of type {expected_type.__name__}, "
-                        f"got {type(value).__name__}"
-                    )
-            else:
-                # Allow unknown parameters (they're passed to the function)
-                pass
 
 
 # Create default instance for easy import

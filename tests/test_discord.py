@@ -380,11 +380,8 @@ class TestDiscordTool:
         
         assert tool.name == "discord_webhook"
         assert "Discord" in tool.description
-        # All parameters should be discoverable, even though optional
-        assert "content" in tool.input_parameters
-        assert "webhook_url" in tool.input_parameters
-        assert "embed" in tool.input_parameters
-        assert "template_vars" in tool.input_parameters
+        # No required parameters - all optional (webhook from env, content/embed either-or)
+        assert tool.input_parameters == {}
     
     @patch('peargent.tools.discord_tool.requests')
     def test_tool_run(self, mock_requests):
