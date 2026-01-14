@@ -307,7 +307,7 @@ def calculate_time_difference(
             human_readable += " ago"
         
         result = {
-            "difference": round(final_value, 2) if not is_future else round(-final_value, 2),
+            "difference": round(-final_value, 2) if not is_future else round(final_value, 2),
             "unit": final_unit,
             "total_seconds": total_seconds,
             "components": {
