@@ -5,7 +5,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from peargent import create_agent, create_pool, create_tool
-from peargent.atlas import create_pear
+from peargent.atlas import create_pear, load_pear
 
 # Create a sample tool
 @create_tool(name="calculator", description="Performs basic math")
@@ -41,4 +41,21 @@ create_pear(pool, "agent_pool.pear")
 print("Exporting collection...")
 create_pear([agent1, agent2], "agent_collection.pear")
 
-print("Done! Check the .pear files.")
+print("Done exporting! Check the .pear files.")
+
+# 4. Load and run a .pear file
+print("\n--- Loading and running .pear files ---")
+
+# Load the agent
+loaded_agent = load_pear("math_agent.pear")
+print(f"Loaded agent: {loaded_agent.name}")
+
+# Load the pool
+loaded_pool = load_pear("agent_pool.pear")
+print(f"Loaded pool with agents: {loaded_pool.agents_names}")
+
+# You can now run the loaded agent/pool:
+# response = loaded_agent.run("What is 2 + 2?")
+# response = loaded_pool.run("Tell me a story")
+
+print("\nDone! Both create_pear and load_pear work correctly.")

@@ -30,7 +30,6 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
-*.pear
 
 # Installer logs
 pip-log.txt
@@ -49,7 +48,6 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
-*.pear
 cover/
 notes.txt
 
@@ -225,6 +223,7 @@ secrets.json
 
 .claude
 conversation_history
+*.pear
 
 # AI/ML specific
 *.h5
