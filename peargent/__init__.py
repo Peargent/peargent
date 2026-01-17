@@ -13,7 +13,7 @@ load_dotenv()
 from ._core.agent import Agent
 from ._core.tool import Tool
 from .tools import get_tool_by_name
-from peargent._core.router import RouterResult, RoutingAgent
+from peargent._core.router import RouterResult, RoutingAgent, SemanticRouter
 from ._core.stopping import limit_steps, StepLimitCondition
 from ._core.pool import Pool
 from ._core.streaming import UpdateType, StreamUpdate
@@ -53,11 +53,13 @@ __all__ = [
     'create_tool',
     'create_pool',
     'create_routing_agent',
+    'create_semantic_router',
     'create_history',
     'Agent',
     'Tool',
     'Pool',
     'RoutingAgent',
+    'SemanticRouter',
     'RouterResult',
     'State',
     'UpdateType',
@@ -450,6 +452,21 @@ def create_routing_agent(name: str, model, persona: str, agents: list):
         RoutingAgent instance
     """
     return RoutingAgent(name=name, model=model, persona=persona, agents=agents)
+
+def create_semantic_router(name: str, model, agents: list, persona: str = None):
+    """
+    Create a semantic router that uses embeddings for agent selection.
+
+    Args:
+        name: Router name
+        model: Embedding-capable model
+        agents: List of available agents
+        persona: Optional persona (unused for logic)
+
+    Returns:
+        SemanticRouter instance
+    """
+    return SemanticRouter(name=name, model=model, agents=agents, persona=persona)
 
 def create_history(store_type=None, **kwargs) -> ConversationHistory:
     """

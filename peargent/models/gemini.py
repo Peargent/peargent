@@ -69,3 +69,32 @@ class GeminiModel(BaseModel):
             return ""
         
         return parts[0].get("text", "")
+
+    def embed(self, text: str) -> list[float]:
+        """
+        Generate an embedding vector for the input text using Gemini API.
+        Defaults to 'text-embedding-004' if not specified in parameters.
+        """
+        model = self.parameters.get("embedding_model", "text-embedding-004")
+        # Embedding endpoint format: .../models/{model}:embedContent
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:embedContent"
+        
+        headers = {
+            "x-goog-api-key": self.api_key,
+            "Content-Type": "application/json"
+        }
+        
+        body = {
+            "content": {"parts": [{"text": text}]}
+        }
+        
+        response = requests.post(url, headers=headers, json=body)
+        
+        if response.status_code != 200:
+            raise RuntimeError(f"Gemini Embedding error: {response.status_code}, {response.text}")
+            
+        data = response.json()
+        if "embedding" not in data or "values" not in data["embedding"]:
+            raise RuntimeError(f"Gemini returned valid response but no embedding data: {data}")
+            
+        return data["embedding"]["values"]

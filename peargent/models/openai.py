@@ -42,3 +42,29 @@ class OpenAIModel(BaseModel):
             raise RuntimeError(f"OpenAI API error: {response.status_code}, {response.text}")
         
         return response.json().get("choices", [{}])[0].get("message", {}).get("content", "")
+
+    def embed(self, text: str) -> list[float]:
+        """
+        Generate an embedding vector for the input text using OpenAI embeddings API.
+        Defaults to 'text-embedding-3-small' if not specified in parameters.
+        """
+        url = "https://api.openai.com/v1/embeddings"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        body = {
+            "input": text,
+            "model": self.parameters.get("embedding_model", "text-embedding-3-small")
+        }
+        
+        response = requests.post(url, headers=headers, json=body)
+        
+        if response.status_code != 200:
+            raise RuntimeError(f"OpenAI Embedding error: {response.status_code}, {response.text}")
+            
+        data = response.json()
+        if "data" not in data or not data["data"]:
+            raise RuntimeError(f"OpenAI returned valid response but no embedding data: {data}")
+            
+        return data["data"][0]["embedding"]

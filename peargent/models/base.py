@@ -17,6 +17,21 @@ class BaseModel(ABC):
         """Generate a text completion from the prompt."""
         pass
 
+    def embed(self, text: str) -> list[float]:
+        """
+        Generate an embedding vector for the input text.
+        
+        Args:
+            text: The text to embed
+            
+        Returns:
+            list[float]: The embedding vector
+            
+        Raises:
+            NotImplementedError: If the model provider does not support embeddings.
+        """
+        raise NotImplementedError(f"Model {self.__class__.__name__} does not support embeddings.")
+
     def stream(self, prompt: str) -> Iterator[str]:
         """
         Stream text completion, yielding chunks as they arrive.

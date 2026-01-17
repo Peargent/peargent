@@ -3,6 +3,10 @@ import json
 from typing import Union, List, Any
 import importlib.metadata
 
+from peargent.atlas.loader import load_pear
+
+__all__ = ["create_pear", "load_pear"]
+
 # Try to get version, handle if package not installed
 try:
     VERSION = importlib.metadata.version("peargent")
