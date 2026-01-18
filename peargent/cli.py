@@ -46,34 +46,19 @@ def _format_error(e: Exception) -> str:
     return first_line
 
 
-def main():
-    """Main entry point for the peargent CLI."""
-    parser = argparse.ArgumentParser(
-        prog="peargent",
-        description="Run AI agents and pools from .pear files exported from Peargent Atlas",
-        epilog="Example: peargent my_agent.pear"
-    )
-    parser.add_argument(
-        "pear_file",
-        type=str,
-        help="Path to the .pear file to run"
-    )
-    parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose output"
-    )
-    
-    args = parser.parse_args()
-    
+def run_pear(args):
+    """Handler for the 'run' command."""
+    pear_file = args.pear_file
+    verbose = args.verbose
+
     # Validate file exists
-    pear_path = Path(args.pear_file)
+    pear_path = Path(pear_file)
     if not pear_path.exists():
-        print(f"❌ Error: File not found: {args.pear_file}")
+        print(f"❌ Error: File not found: {pear_file}")
         sys.exit(1)
     
     if not pear_path.suffix == ".pear":
-        print(f"⚠️  Warning: File does not have .pear extension: {args.pear_file}")
+        print(f"⚠️  Warning: File does not have .pear extension: {pear_file}")
     
     # Load the .pear file
     try:
@@ -137,10 +122,68 @@ def main():
         sys.exit(1)
     except Exception as e:
         print(f"❌ Error loading .pear file: {e}")
-        if args.verbose:
+        if verbose:
             import traceback
             traceback.print_exc()
         sys.exit(1)
+
+
+def main():
+    """Main entry point for the peargent CLI."""
+    parser = argparse.ArgumentParser(
+        prog="peargent",
+        description="Peargent CLI - Run and manage AI agents"
+    )
+    
+    # Add version argument
+    parser.add_argument(
+        "--version", "-V",
+        action="store_true",
+        help="Show version information"
+    )
+    
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
+    
+    # Run command
+    run_parser = subparsers.add_parser(
+        "run", 
+        help="Run a .pear file",
+        description="Run AI agents and pools from .pear files"
+    )
+    run_parser.add_argument(
+        "pear_file",
+        type=str,
+        help="Path to the .pear file to run"
+    )
+    run_parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Enable verbose output"
+    )
+    
+    # If no arguments provided, print help
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+        
+    args = parser.parse_args()
+    
+    if args.version:
+        # Try to get version from package
+        try:
+            from importlib.metadata import version
+            print(f"peargent {version('peargent')}")
+        except ImportError:
+            print("peargent (version unknown)")
+        sys.exit(0)
+    
+    if args.command == "run":
+        run_pear(args)
+    else:
+        # Fallback for backward compatibility or just show help
+        # If the user provided a file directly without 'run', we could check if it exists
+        # But for now let's enforce 'run' or show help
+        parser.print_help()
 
 
 def run_interactive(obj, obj_type: str):

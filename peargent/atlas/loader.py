@@ -149,11 +149,17 @@ def _parse_tool(config: Dict) -> Any:
     retry_backoff = config.get("retry_backoff", True)
     on_error = config.get("on_error", "raise")
     
+    input_parameters = config.get("input_parameters")
+
     # Common kwargs for create_tool
     tool_kwargs = {
         "name": tool_name,
         "description": description,
     }
+    
+    if input_parameters:
+        tool_kwargs["input_parameters"] = input_parameters
+
     
     # Only add optional params if they have non-default values
     if timeout is not None:
@@ -201,9 +207,10 @@ def _parse_tool(config: Dict) -> Any:
         return create_tool(**tool_kwargs)
     except Exception as e:
         # Create a fallback tool that reports the error
+        err_msg = str(e)
         @create_tool(name=tool_name, description=description)
         def error_tool(**kwargs):
-            return f"Tool '{tool_name}' failed to load: {e}"
+            return f"Tool '{tool_name}' failed to load: {err_msg}"
         return error_tool
 
 
