@@ -7,6 +7,9 @@ jinja2>=3.0.0
 psycopg2-binary>=2.9.0
 tzdata>=2024.1  # For timezone support on Windows
 
+# Web search dependencies
+ddgs>=9.0.0
+
 # Text extraction dependencies (optional)
 beautifulsoup4>=4.12.3
 pypdf>=6.0.0
