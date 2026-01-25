@@ -9,42 +9,44 @@ from unittest.mock import patch, Mock
 
 from peargent.tools.websearch_tool import (
     WebSearchTool,
-    web_search,
-    _parse_duckduckgo_html
+    web_search
 )
 
 
-@patch('peargent.tools.websearch_tool.requests')
+@patch('peargent.tools.websearch_tool.DDGS')
 class TestWebSearch:
     """Test basic web search functionality."""
     
-    def test_successful_search(self, mock_requests):
+    def test_successful_search(self, mock_ddgs_class):
         """Test a successful web search."""
-        # Mock DuckDuckGo response with HTML
-        mock_response = Mock()
-        mock_response.text = """
-        <div class="result">
-            <a class="result__a" href="https://example.com/python">Python Tutorial</a>
-            <a class="result__snippet">Learn Python programming basics...</a>
-        </div>
-        <div class="result">
-            <a class="result__a" href="https://example.com/python2">Advanced Python</a>
-            <a class="result__snippet">Advanced Python concepts and techniques...</a>
-        </div>
-        """
-        mock_response.raise_for_status = Mock()
-        
-        mock_requests.post.return_value = mock_response
+        # Mock DDGS instance and text method
+        mock_ddgs = Mock()
+        mock_ddgs.text.return_value = [
+            {
+                "title": "Python Tutorial",
+                "body": "Learn Python programming basics...",
+                "href": "https://example.com/python"
+            },
+            {
+                "title": "Advanced Python",
+                "body": "Advanced Python concepts and techniques...",
+                "href": "https://example.com/python2"
+            }
+        ]
+        mock_ddgs_class.return_value = mock_ddgs
         
         result = web_search("Python programming")
         
         assert result["success"] is True
-        assert len(result["results"]) >= 1
+        assert len(result["results"]) == 2
         assert result["metadata"]["query"] == "Python programming"
         assert result["metadata"]["search_engine"] == "DuckDuckGo"
         assert result["error"] is None
+        assert result["results"][0]["title"] == "Python Tutorial"
+        assert result["results"][0]["snippet"] == "Learn Python programming basics..."
+        assert result["results"][0]["url"] == "https://example.com/python"
     
-    def test_empty_query(self, mock_requests):
+    def test_empty_query(self, mock_ddgs_class):
         """Test that empty query returns error."""
         result = web_search("")
         
@@ -52,22 +54,21 @@ class TestWebSearch:
         assert result["error"] == "Query cannot be empty"
         assert result["results"] == []
     
-    def test_max_results_limit(self, mock_requests):
+    def test_max_results_limit(self, mock_ddgs_class):
         """Test that max_results is properly limited."""
-        mock_response = Mock()
-        # Create HTML with many results
-        results_html = ""
-        for i in range(30):
-            results_html += f"""
-            <div class="result">
-                <a class="result__a" href="https://example.com/{i}">Result {i}</a>
-                <a class="result__snippet">Snippet for result {i}...</a>
-            </div>
-            """
-        mock_response.text = results_html
-        mock_response.raise_for_status = Mock()
+        # Create more results than max
+        mock_results = [
+            {
+                "title": f"Result {i}",
+                "body": f"Snippet for result {i}...",
+                "href": f"https://example.com/{i}"
+            }
+            for i in range(30)
+        ]
         
-        mock_requests.post.return_value = mock_response
+        mock_ddgs = Mock()
+        mock_ddgs.text.return_value = mock_results[:25]  # DDGS will return max 25
+        mock_ddgs_class.return_value = mock_ddgs
         
         # Request 30 results (should be limited to 25)
         result = web_search("test query", max_results=30)
@@ -75,18 +76,17 @@ class TestWebSearch:
         assert result["success"] is True
         assert len(result["results"]) <= 25
     
-    def test_safesearch_options(self, mock_requests):
+    def test_safesearch_options(self, mock_ddgs_class):
         """Test different safesearch settings."""
-        mock_response = Mock()
-        mock_response.text = """
-        <div class="result">
-            <a class="result__a" href="https://example.com">Test Result</a>
-            <a class="result__snippet">Test snippet...</a>
-        </div>
-        """
-        mock_response.raise_for_status = Mock()
-        
-        mock_requests.post.return_value = mock_response
+        mock_ddgs = Mock()
+        mock_ddgs.text.return_value = [
+            {
+                "title": "Test Result",
+                "body": "Test snippet...",
+                "href": "https://example.com"
+            }
+        ]
+        mock_ddgs_class.return_value = mock_ddgs
         
         # Test strict safesearch
         result = web_search("test", safesearch="strict")
@@ -103,18 +103,17 @@ class TestWebSearch:
         assert result["success"] is True
         assert result["metadata"]["safesearch"] == "moderate"
     
-    def test_time_range_filter(self, mock_requests):
+    def test_time_range_filter(self, mock_ddgs_class):
         """Test time-based filtering."""
-        mock_response = Mock()
-        mock_response.text = """
-        <div class="result">
-            <a class="result__a" href="https://example.com">Recent Result</a>
-            <a class="result__snippet">Recent content...</a>
-        </div>
-        """
-        mock_response.raise_for_status = Mock()
-        
-        mock_requests.post.return_value = mock_response
+        mock_ddgs = Mock()
+        mock_ddgs.text.return_value = [
+            {
+                "title": "Recent Result",
+                "body": "Recent content...",
+                "href": "https://example.com"
+            }
+        ]
+        mock_ddgs_class.return_value = mock_ddgs
         
         # Test day filter
         result = web_search("test", time_range="d")
@@ -132,31 +131,28 @@ class TestWebSearch:
         assert result["success"] is True
         assert "time_range" not in result["metadata"]
     
-    def test_regional_search(self, mock_requests):
+    def test_regional_search(self, mock_ddgs_class):
         """Test regional filtering."""
-        mock_response = Mock()
-        mock_response.text = """
-        <div class="result">
-            <a class="result__a" href="https://example.com">Regional Result</a>
-            <a class="result__snippet">Regional content...</a>
-        </div>
-        """
-        mock_response.raise_for_status = Mock()
-        
-        mock_requests.post.return_value = mock_response
+        mock_ddgs = Mock()
+        mock_ddgs.text.return_value = [
+            {
+                "title": "Regional Result",
+                "body": "Regional content...",
+                "href": "https://example.com"
+            }
+        ]
+        mock_ddgs_class.return_value = mock_ddgs
         
         result = web_search("test", region="us-en")
         
         assert result["success"] is True
         assert result["metadata"]["region"] == "us-en"
     
-    def test_no_results_found(self, mock_requests):
+    def test_no_results_found(self, mock_ddgs_class):
         """Test handling when no results are found."""
-        mock_response = Mock()
-        mock_response.text = "<html><body>No results</body></html>"
-        mock_response.raise_for_status = Mock()
-        
-        mock_requests.post.return_value = mock_response
+        mock_ddgs = Mock()
+        mock_ddgs.text.return_value = []
+        mock_ddgs_class.return_value = mock_ddgs
         
         result = web_search("veryrandomquery12345")
         
@@ -164,9 +160,11 @@ class TestWebSearch:
         assert len(result["results"]) == 0
         assert "message" in result["metadata"]
     
-    def test_network_error(self, mock_requests):
+    def test_network_error(self, mock_ddgs_class):
         """Test handling of network errors."""
-        mock_requests.post.side_effect = Exception("Connection error")
+        mock_ddgs = Mock()
+        mock_ddgs.text.side_effect = Exception("Connection error")
+        mock_ddgs_class.return_value = mock_ddgs
         
         result = web_search("test query")
         
@@ -174,10 +172,11 @@ class TestWebSearch:
         assert "error" in result
         assert result["results"] == []
     
-    def test_timeout_error(self, mock_requests):
+    def test_timeout_error(self, mock_ddgs_class):
         """Test handling of timeout errors."""
-        from requests.exceptions import Timeout
-        mock_requests.post.side_effect = Timeout("Request timed out")
+        mock_ddgs = Mock()
+        mock_ddgs.text.side_effect = Exception("Request timed out")
+        mock_ddgs_class.return_value = mock_ddgs
         
         result = web_search("test query")
         
@@ -196,68 +195,24 @@ class TestWebSearchTool:
         assert "DuckDuckGo" in tool.description
         assert "query" in tool.input_parameters
     
-    @patch('peargent.tools.websearch_tool.requests')
-    def test_tool_run(self, mock_requests):
+    @patch('peargent.tools.websearch_tool.DDGS')
+    def test_tool_run(self, mock_ddgs_class):
         """Test running the tool."""
-        mock_response = Mock()
-        mock_response.text = """
-        <div class="result">
-            <a class="result__a" href="https://example.com">Test</a>
-            <a class="result__snippet">Test snippet...</a>
-        </div>
-        """
-        mock_response.raise_for_status = Mock()
-        
-        mock_requests.post.return_value = mock_response
+        mock_ddgs = Mock()
+        mock_ddgs.text.return_value = [
+            {
+                "title": "Test",
+                "body": "Test snippet...",
+                "href": "https://example.com"
+            }
+        ]
+        mock_ddgs_class.return_value = mock_ddgs
         
         tool = WebSearchTool()
         result = tool.run({"query": "test"})
         
         assert result["success"] is True
         assert len(result["results"]) >= 1
-
-
-class TestHTMLParsing:
-    """Test HTML parsing functionality."""
-    
-    def test_parse_with_beautifulsoup(self):
-        """Test parsing with BeautifulSoup."""
-        html = """
-        <div class="result">
-            <a class="result__a" href="https://example.com/1">Title 1</a>
-            <a class="result__snippet">Snippet 1</a>
-        </div>
-        <div class="result">
-            <a class="result__a" href="https://example.com/2">Title 2</a>
-            <a class="result__snippet">Snippet 2</a>
-        </div>
-        """
-        
-        try:
-            results = _parse_duckduckgo_html(html, max_results=5)
-            assert len(results) >= 1
-            if results:
-                assert "title" in results[0]
-                assert "url" in results[0]
-                assert "snippet" in results[0]
-        except ImportError:
-            # BeautifulSoup not available, skip test
-            pytest.skip("BeautifulSoup not available")
-    
-    def test_parse_empty_html(self):
-        """Test parsing empty HTML."""
-        html = "<html><body></body></html>"
-        
-        results = _parse_duckduckgo_html(html, max_results=5)
-        assert results == []
-    
-    def test_parse_malformed_html(self):
-        """Test parsing malformed HTML doesn't crash."""
-        html = "<div><a>Incomplete..."
-        
-        results = _parse_duckduckgo_html(html, max_results=5)
-        # Should not crash, may return empty list
-        assert isinstance(results, list)
 
 
 @pytest.mark.skipif(
@@ -297,13 +252,13 @@ class TestWebSearchIntegration:
         assert result["metadata"]["safesearch"] == "moderate"
 
 
-def test_requests_import_error():
-    """Test behavior when requests is not installed."""
-    with patch('peargent.tools.websearch_tool.requests', None):
+def test_ddgs_import_error():
+    """Test behavior when ddgs is not installed."""
+    with patch('peargent.tools.websearch_tool.DDGS_AVAILABLE', False):
         result = web_search("test")
         
         assert result["success"] is False
-        assert "requests library is required" in result["error"]
+        assert "ddgs library is required" in result["error"]
 
 
 if __name__ == "__main__":
