@@ -98,51 +98,63 @@ def main():
     print("\n\n5. Advanced research agent with web search:")
     print("-" * 60)
     
-    research_agent = create_agent(
-        name="DeepResearchAgent",
-        instructions="""You are an expert research assistant with web search capabilities.
-        
-        When researching a topic:
-        1. Break down complex questions into specific search queries
-        2. Search for current, authoritative information
-        3. Cross-reference multiple sources
-        4. Synthesize findings into clear, comprehensive answers
-        5. Always cite your sources with URLs
-        
-        Be thorough, accurate, and provide evidence-based responses.""",
-        model=gemini,
-        tools=[websearch_tool]
-    )
+    try:
+        research_agent = create_agent(
+            name="DeepResearchAgent",
+            description="An expert research assistant with web search capabilities",
+            persona="""You are an expert research assistant with web search capabilities.
+            
+            When researching a topic:
+            1. Break down complex questions into specific search queries
+            2. Search for current, authoritative information
+            3. Cross-reference multiple sources
+            4. Synthesize findings into clear, comprehensive answers
+            5. Always cite your sources with URLs
+            
+            Be thorough, accurate, and provide evidence-based responses.""",
+            model=gemini("gemini-2.5-flash-lite"),
+            tools=[websearch_tool]
+        )
     
-    # Complex research query
-    query = "Compare the latest advancements in solar energy vs wind energy in 2026"
-    print(f"\nResearch query: {query}")
-    print("\nAgent researching...")
-    
-    response = research_agent.run(query)
-    print(f"\nResearch findings:\n{response}")
+        # Complex research query
+        query = "Compare the latest advancements in solar energy vs wind energy in 2026"
+        print(f"\nResearch query: {query}")
+        print("\nAgent researching...")
+        
+        response = research_agent.run(query)
+        print(f"\nResearch findings:\n{response}")
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        print(f"Error type: {type(e).__name__}")
+        print(f"\nNote: Agent requires API key. Set GEMINI_API_KEY in .env file.")
     
     # Example 6: Fact-checking agent
     print("\n\n6. Fact-checking with web search:")
     print("-" * 60)
     
-    fact_checker = create_agent(
-        name="FactChecker",
-        instructions="""You are a fact-checking assistant. When given a claim:
-        1. Search for authoritative sources
-        2. Look for recent information
-        3. Verify facts from multiple angles
-        4. Provide a verdict: True, False, Partially True, or Unverified
-        5. Always cite sources""",
-        model=gemini,
-        tools=[websearch_tool]
-    )
-    
-    claim = "Python is the most popular programming language in 2026"
-    print(f"\nClaim to verify: {claim}")
-    
-    verification = fact_checker.run(f"Fact-check this claim: {claim}")
-    print(f"\nVerification result:\n{verification}")
+    try:
+        fact_checker = create_agent(
+            name="FactChecker",
+            description="A fact-checking assistant with web search",
+            persona="""You are a fact-checking assistant. When given a claim:
+            1. Search for authoritative sources
+            2. Look for recent information
+            3. Verify facts from multiple angles
+            4. Provide a verdict: True, False, Partially True, or Unverified
+            5. Always cite sources""",
+            model=gemini("gemini-2.5-flash-lite"),
+            tools=[websearch_tool]
+        )
+        
+        claim = "Python is the most popular programming language in 2026"
+        print(f"\nClaim to verify: {claim}")
+        
+        verification = fact_checker.run(f"Fact-check this claim: {claim}")
+        print(f"\nVerification result:\n{verification}")
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        print(f"Error type: {type(e).__name__}")
+        print(f"\nNote: Agent requires API key. Set GEMINI_API_KEY in .env file.")
     
     # Example 7: Multi-lingual search
     print("\n\n7. Multi-lingual search (German):")
