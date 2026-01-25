@@ -158,7 +158,26 @@ def _parse_tool(config: Dict) -> Any:
     }
     
     if input_parameters:
-        tool_kwargs["input_parameters"] = input_parameters
+        # Convert string types to actual types
+        type_map = {
+            "str": str,
+            "int": int,
+            "float": float,
+            "bool": bool,
+            "list": list,
+            "dict": dict,
+            "Any": Any
+        }
+        converted_params = {}
+        for k, v in input_parameters.items():
+            if isinstance(v, str):
+                # Remove quotes if present? types usually come as raw strings "str"
+                clean_v = v.strip("'\"")
+                converted_params[k] = type_map.get(clean_v, Any)
+            else:
+                converted_params[k] = v
+                
+        tool_kwargs["input_parameters"] = converted_params
 
     
     # Only add optional params if they have non-default values
