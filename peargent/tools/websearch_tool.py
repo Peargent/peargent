@@ -4,7 +4,6 @@ Queries search engines (DuckDuckGo) for up-to-date information and retrieves res
 """
 
 from typing import Dict, Any, Optional, List
-from urllib.parse import quote
 
 from peargent import Tool
 
@@ -13,11 +12,6 @@ try:
     DDGS_AVAILABLE = True
 except ImportError:
     DDGS_AVAILABLE = False
-
-try:
-    import requests
-except ImportError:
-    requests = None
 
 
 def web_search(
@@ -201,88 +195,6 @@ def _search_duckduckgo_api(
         
     except Exception as e:
         raise Exception(f"DuckDuckGo search failed: {str(e)}")
-
-
-def _parse_duckduckgo_html(html: str, max_results: int) -> List[Dict[str, str]]:
-    """
-    Parse DuckDuckGo HTML response to extract search results.
-    
-    Returns:
-        List of result dictionaries
-    """
-    results = []
-    
-    try:
-        # Try to use BeautifulSoup if available
-        try:
-            from bs4 import BeautifulSoup
-            soup = BeautifulSoup(html, 'html.parser')
-            
-            # Find all result divs
-            result_divs = soup.find_all('div', class_='result')
-            
-            for div in result_divs[:max_results]:
-                # Extract title and URL
-                title_link = div.find('a', class_='result__a')
-                if not title_link:
-                    continue
-                
-                title = title_link.get_text(strip=True)
-                url = title_link.get('href', '')
-                
-                # Extract snippet
-                snippet_div = div.find('a', class_='result__snippet')
-                snippet = snippet_div.get_text(strip=True) if snippet_div else ""
-                
-                if title and url:
-                    results.append({
-                        "title": title,
-                        "snippet": snippet,
-                        "url": url
-                    })
-                
-                if len(results) >= max_results:
-                    break
-        
-        except ImportError:
-            # Fall back to regex parsing if BeautifulSoup not available
-            import re
-            
-            # Find result blocks using regex
-            result_pattern = r'<div class="result[^"]*"[^>]*>.*?</div>\s*</div>'
-            result_blocks = re.findall(result_pattern, html, re.DOTALL)
-            
-            for block in result_blocks[:max_results * 2]:  # Get more to filter
-                # Extract title
-                title_match = re.search(r'<a[^>]+class="result__a"[^>]*>([^<]+)</a>', block)
-                if not title_match:
-                    continue
-                
-                title = title_match.group(1).strip()
-                
-                # Extract URL
-                url_match = re.search(r'<a[^>]+class="result__a"[^>]+href="([^"]+)"', block)
-                url = url_match.group(1) if url_match else ""
-                
-                # Extract snippet
-                snippet_match = re.search(r'<a[^>]+class="result__snippet"[^>]*>([^<]+)</a>', block)
-                snippet = snippet_match.group(1).strip() if snippet_match else ""
-                
-                if title and url:
-                    results.append({
-                        "title": title,
-                        "snippet": snippet,
-                        "url": url
-                    })
-                
-                if len(results) >= max_results:
-                    break
-    
-    except Exception as e:
-        # If parsing fails, return empty list
-        pass
-    
-    return results
 
 
 class WebSearchTool(Tool):
