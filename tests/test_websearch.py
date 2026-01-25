@@ -182,7 +182,7 @@ class TestWebSearch:
         result = web_search("test query")
         
         assert result["success"] is False
-        assert "timeout" in result["error"].lower()
+        assert "timed out" in result["error"].lower()
 
 
 class TestWebSearchTool:
