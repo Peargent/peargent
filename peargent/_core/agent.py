@@ -13,6 +13,7 @@ from typing import Optional, Dict, List, Any, Type, Union
 from jinja2 import Environment, FileSystemLoader
 from peargent._core.stopping import limit_steps
 from peargent.history import ConversationHistory
+from peargent.memory import LongTermMemory
 from peargent.observability.cost_tracker import get_cost_tracker
 from peargent.observability import get_tracer, SpanType
 
@@ -30,12 +31,13 @@ class Agent:
         stop_conditions: Conditions that determine when agent should stop iterating
         temporary_memory (list): Conversation history for current run session
         history (ConversationHistory, optional): Persistent conversation history manager
+        long_term_memory (LongTermMemory, optional): Semantic memory for storing and retrieving facts across sessions
         auto_manage_context (bool): Whether to automatically manage context window
         max_context_messages (int): Maximum messages before auto-management triggers
         context_strategy (str): Strategy for context management ("smart", "trim_last", "trim_first", "summarize")
         summarize_model: Model to use for summarization (falls back to main model if not provided)
     """
-    def __init__(self, name, model, persona, description, tools, stop=None, history: Optional[ConversationHistory] = None, auto_manage_context: bool = False, max_context_messages: int = 20, context_strategy: str = "smart", summarize_model=None, tracing: bool = True, _tracing_explicitly_set: bool = False, output_schema: Optional[Type] = None, max_retries: int = 3):
+    def __init__(self, name, model, persona, description, tools, stop=None, history: Optional[ConversationHistory] = None, auto_manage_context: bool = False, max_context_messages: int = 20, context_strategy: str = "smart", summarize_model=None, tracing: bool = True, _tracing_explicitly_set: bool = False, output_schema: Optional[Type] = None, max_retries: int = 3, long_term_memory: Optional[LongTermMemory] = None):
         self.name = name
         self.model = model
         self.persona = persona
@@ -43,6 +45,7 @@ class Agent:
         self.tools = {tool.name: tool for tool in tools}
         self.stop_conditions = stop or limit_steps(5)
         self.history = history
+        self.long_term_memory = long_term_memory
         self.auto_manage_context = auto_manage_context
         self.max_context_messages = max_context_messages
         self.context_strategy = context_strategy
@@ -232,13 +235,24 @@ class Agent:
         else:
             format_prompt = self._render_no_tools_prompt()
 
+        # Retrieve relevant long-term memories if available
+        ltm_context = ""
+        if self.long_term_memory:
+            try:
+                relevant_memories = self.long_term_memory.retrieve(user_input, limit=3)
+                if relevant_memories:
+                    ltm_context = "\n" + self.long_term_memory.format_memories_for_context(relevant_memories) + "\n"
+            except Exception as e:
+                # Don't fail if memory retrieval fails
+                print(f"Warning: Long-term memory retrieval failed: {e}")
+
         memory_str = "\n".join(
             [
                 f"{item['role'].capitalize()}: {item['content']}"
                 for item in self.temporary_memory
             ]
         )
-        return f"{self.persona}\n\n{format_prompt}\n\n{memory_str}\n\nAssistant:"
+        return f"{self.persona}\n\n{format_prompt}{ltm_context}\n\n{memory_str}\n\nAssistant:"
 
     def _add_to_memory(self, role: str, content: Any) -> None:
         """Add a message to the agent's temporary memory."""
@@ -292,6 +306,29 @@ class Agent:
                 self.history.add_assistant_message(content, agent=self.name)
             elif role == "tool":
                 self.history.add_tool_message(content, agent=self.name)
+
+    def _extract_facts_to_long_term_memory(self) -> None:
+        """Extract facts from current conversation and store in long-term memory."""
+        if not self.long_term_memory or not self.long_term_memory.auto_extract:
+            return
+        
+        try:
+            # Build conversation text from temporary memory
+            conversation_text = "\n".join([
+                f"{item['role'].capitalize()}: {item['content']}"
+                for item in self.temporary_memory
+                if item['role'] in ['user', 'assistant']  # Skip tool messages
+            ])
+            
+            if conversation_text.strip():
+                # Store facts with metadata
+                self.long_term_memory.extract_and_store(
+                    conversation_text,
+                    metadata={"agent": self.name, "extracted": True}
+                )
+        except Exception as e:
+            # Don't fail the conversation if fact extraction fails
+            print(f"Warning: Fact extraction to long-term memory failed: {e}")
 
     def run(self, input_data: str) -> str:
         """
@@ -483,6 +520,7 @@ class Agent:
                         if item['role'] == 'tool':
                             result = f"Based on the analysis: {item['content']['output']}"
                             self._sync_to_history()
+                            self._extract_facts_to_long_term_memory()
 
                             if tracer and tracer.enabled and trace:
                                 tracer.end_trace(trace.trace_id, output=result)
@@ -490,6 +528,7 @@ class Agent:
                             return result
                     result = "Task completed with available information."
                     self._sync_to_history()
+                    self._extract_facts_to_long_term_memory()
 
                     if tracer and tracer.enabled and trace:
                         tracer.end_trace(trace.trace_id, output=result)
@@ -502,6 +541,7 @@ class Agent:
                     try:
                         validated_output = self._parse_and_validate_json(response)
                         self._sync_to_history()
+                        self._extract_facts_to_long_term_memory()
 
                         if tracer and tracer.enabled and trace:
                             tracer.end_trace(trace.trace_id, output=str(validated_output))
@@ -533,6 +573,7 @@ class Agent:
 
                 # No structured output, return plain response
                 self._sync_to_history()
+                self._extract_facts_to_long_term_memory()
 
                 if tracer and tracer.enabled and trace:
                     tracer.end_trace(trace.trace_id, output=response)
@@ -546,6 +587,10 @@ class Agent:
                 tracer.end_trace(trace.trace_id, error=e)
 
             raise e
+        finally:
+            # Extract facts even if there was an error (partial conversation still valuable)
+            if not hasattr(self, '_exception_raised'):
+                self._extract_facts_to_long_term_memory()
 
     def stream(self, input_data: str):
         """

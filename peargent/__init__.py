@@ -88,7 +88,7 @@ if SQLiteHistoryStore:
 # Sentinel value to detect if tracing was explicitly passed
 _TRACING_NOT_SET = object()
 
-def create_agent(name: str, description: str, persona: str, model=None, tools=None, stop=None, history=None, tracing=_TRACING_NOT_SET, output_schema=None, max_retries: int = 3):
+def create_agent(name: str, description: str, persona: str, model=None, tools=None, stop=None, history=None, tracing=_TRACING_NOT_SET, output_schema=None, max_retries: int = 3, long_term_memory=None):
     """
     Create an agent with optional persistent history.
 
@@ -188,7 +188,8 @@ def create_agent(name: str, description: str, persona: str, model=None, tools=No
             tracing=actual_tracing,
             _tracing_explicitly_set=tracing_explicitly_set,
             output_schema=output_schema,
-            max_retries=max_retries
+            max_retries=max_retries,
+            long_term_memory=long_term_memory
         )
 
     # Legacy behavior
@@ -203,7 +204,8 @@ def create_agent(name: str, description: str, persona: str, model=None, tools=No
         tracing=actual_tracing,
         _tracing_explicitly_set=tracing_explicitly_set,
         output_schema=output_schema,
-        max_retries=max_retries
+        max_retries=max_retries,
+        long_term_memory=long_term_memory
     )
 
 def create_tool(
