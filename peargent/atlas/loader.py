@@ -24,6 +24,10 @@ def load_pear(file_path: str) -> Union["Agent", "Pool", list]:
     from peargent._core.pool import Pool
     
     path = Path(file_path)
+    # Validate file extension
+    if not str(path).endswith(".pear"):
+        raise ValueError(f"File must be a .pear file: {file_path}")
+
     if not path.exists():
         raise FileNotFoundError(f"Pear file not found: {file_path}")
     
