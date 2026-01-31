@@ -13,6 +13,7 @@ A modern Python framework for building intelligent AI agents with simplicity at 
 
 - **Advanced Tracing** - Track every action, decision, and API call with detailed telemetry and database persistence
 - **Smart History Management** - Built-in conversation history with intelligent context windowing and buffer management
+- **Long-Term Memory** - Semantic memory for remembering facts across sessions using vector embeddings
 - **Multi-LLM Support** - Seamlessly switch between OpenAI, Anthropic, Groq, Gemini, and more
 - **Type-Safe Tools** - Pydantic-powered tool system with automatic validation
 - **Agent Pools** - Run multiple agents concurrently with shared context
